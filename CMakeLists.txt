@@ -20,16 +20,16 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
-# if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-set(WHISPER_STANDALONE ON)
+if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
+    set(WHISPER_STANDALONE ON)
 
-include(git-vars)
+    include(git-vars)
 
-# configure project version
-configure_file(${CMAKE_SOURCE_DIR}/bindings/javascript/package-tmpl.json ${CMAKE_SOURCE_DIR}/bindings/javascript/package.json @ONLY)
-# else()
-#     set(WHISPER_STANDALONE OFF)
-# endif()
+    # configure project version
+    configure_file(${CMAKE_SOURCE_DIR}/bindings/javascript/package-tmpl.json ${CMAKE_SOURCE_DIR}/bindings/javascript/package.json @ONLY)
+else()
+    set(WHISPER_STANDALONE OFF)
+endif()
 
 if (EMSCRIPTEN)
     set(BUILD_SHARED_LIBS_DEFAULT OFF)
@@ -38,7 +38,7 @@ if (EMSCRIPTEN)
 
     # TODO: without these, we get the following error:
     #       wasm-ld: error: --shared-memory is disallowed by whisper.cpp.o because it was not compiled with 'atomics' or 'bulk-memory' features.
-    # set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -pthread")
+    set(CMAKE_C_FLAGS   "${CMAKE_C_FLAGS}   -pthread")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -s TOTAL_STACK=5242880")
@@ -79,7 +79,7 @@ option(WHISPER_BUILD_SERVER   "whisper: build server example" ${WHISPER_STANDALO
 
 # 3rd party libs
 option(WHISPER_CURL "whisper: use libcurl to download model from an URL" OFF)
-option(WHISPER_SDL2 "whisper: support for libSDL2" ON)
+option(WHISPER_SDL2 "whisper: support for libSDL2" OFF)
 
 if (CMAKE_SYSTEM_NAME MATCHES "Linux")
     option(WHISPER_FFMPEG "whisper: support building and linking with ffmpeg libs (avcodec, swresample, ...)" OFF)

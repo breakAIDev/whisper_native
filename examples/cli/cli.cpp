@@ -1,3 +1,5 @@
+
+#include "common-sdl.h"
 #include "common.h"
 #include "common-whisper.h"
 
@@ -43,6 +45,10 @@ struct whisper_params {
     int32_t best_of       = whisper_full_default_params(WHISPER_SAMPLING_GREEDY).greedy.best_of;
     int32_t beam_size     = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH).beam_search.beam_size;
     int32_t audio_ctx     = 0;
+    int32_t step_ms    = 3000;
+    int32_t length_ms  = 10000;
+    int32_t keep_ms    = 200;
+    int32_t capture_id = -1;
 
     float word_thold      =  0.01f;
     float entropy_thold   =  2.40f;
@@ -1104,10 +1110,36 @@ int main(int argc, char ** argv) {
         std::vector<float> pcmf32;               // mono-channel F32 PCM
         std::vector<std::vector<float>> pcmf32s; // stereo-channel F32 PCM
 
+
+        // // init audio
+        // audio_async audio(params.length_ms);
+        // if (!audio.init(params.capture_id, WHISPER_SAMPLE_RATE)) {
+        //     fprintf(stderr, "%s: audio.init() failed!\n", __func__);
+        //     return 1;
+        // }
+        
+        // audio.resume();
+
+        // // wait for 1 second to avoid any buffered noise
+        // std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        // audio.clear();
+
         if (!::read_audio_data(fname_inp, pcmf32, pcmf32s, params.diarize)) {
             fprintf(stderr, "error: failed to read audio file '%s'\n", fname_inp.c_str());
             continue;
         }
+
+        // bool is_running = true;
+        // while (is_running)
+        // {
+        //     // handle Ctrl + C
+        //     is_running = sdl_poll_events();
+
+        //     if(!is_running) {
+        //         break;
+        //     }
+        // }
+        
 
         if (!whisper_is_multilingual(ctx)) {
             if (params.language != "en" || params.translate) {

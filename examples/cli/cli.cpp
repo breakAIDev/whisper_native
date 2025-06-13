@@ -44,11 +44,16 @@ struct whisper_params {
     int32_t max_len       = 0;
     int32_t best_of       = whisper_full_default_params(WHISPER_SAMPLING_GREEDY).greedy.best_of;
     int32_t beam_size     = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH).beam_search.beam_size;
-    int32_t audio_ctx     = 0;
     int32_t command_ms    = 3000;
     int32_t buffer_ms  = 10000;
     int32_t keep_ms    = 200;
     int32_t capture_id = -1;
+    int32_t audio_ctx     = 0;
+
+    float vad_thold  = 0.4f;
+    float freq_thold = 100.0f;
+
+    float grammar_penalty = 100.0f;
 
     float word_thold      =  0.01f;
     float entropy_thold   =  2.40f;
@@ -343,6 +348,7 @@ int main(int argc, char ** argv) {
             fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
         }
     }
+
     if (params.detect_language) {
         params.language = "auto";
     }
@@ -496,7 +502,7 @@ int main(int argc, char ** argv) {
         float logprob_sum  = 0.0f;
 
         int n_tokens0 = 0;
-        int n_tokens  = 0
+        int n_tokens  = 0;
 
         fprintf(stdout, "%s: Athenea ...\n", __func__);
 
@@ -515,13 +521,7 @@ int main(int argc, char ** argv) {
                 // we have heard the activation phrase, now detect the commands
                 audio.get(params.command_ms, pcmf32);
 
-                fprintf(stderr, "%s: voice -> %d samples, %.1f sec ...\n", __func__, int(pcmf32.size()), float(pcmf32.size())/WHISPER_SAMPLE_RATE,);
-
-                // prepend 3 second of silence
-                pcmf32.insert(pcmf32_cur.begin(), 3.0f*WHISPER_SAMPLE_RATE, 0.0f);
-
-                // prepend the prompt audio
-                pcmf32.insert(pcmf32_cur.begin(), pcmf32_prompt.begin(), pcmf32_prompt.end());
+                fprintf(stderr, "%s: voice -> %d samples, %.1f sec ...\n", __func__, int(pcmf32.size()), float(pcmf32.size())/WHISPER_SAMPLE_RATE);
 
                 const auto t_start = std::chrono::high_resolution_clock::now();
                 std::string result = "";
@@ -549,7 +549,7 @@ int main(int argc, char ** argv) {
                     t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
 
                     const float p = 100.0f * std::exp(logprob_min);
-                    fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %d ms)\n", __func__, result.c_str(), p, t_ms);
+                    fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
                 }
 
                 audio.clear();

@@ -44,6 +44,7 @@ struct whisper_params {
     int32_t max_len       = 0;
     int32_t best_of       = whisper_full_default_params(WHISPER_SAMPLING_GREEDY).greedy.best_of;
     int32_t beam_size     = whisper_full_default_params(WHISPER_SAMPLING_BEAM_SEARCH).beam_search.beam_size;
+    
     int32_t command_ms    = 3000;
     int32_t buffer_ms  = 10000;
     int32_t keep_ms    = 200;
@@ -52,8 +53,6 @@ struct whisper_params {
 
     float vad_thold  = 0.4f;
     float freq_thold = 100.0f;
-
-    float grammar_penalty = 100.0f;
 
     float word_thold      =  0.01f;
     float entropy_thold   =  2.40f;
@@ -80,6 +79,8 @@ struct whisper_params {
     bool use_gpu         = true;
     bool flash_attn      = false;
     bool suppress_nst    = false;
+
+    bool print_energy    = false;
 
     std::string language  = "en";
     std::string prompt;

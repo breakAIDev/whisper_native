@@ -551,7 +551,7 @@ int main(int argc, char ** argv) {
 
                     // const float p = 100.0f * std::exp(logprob_min);
                     // fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
-                    fprintf(stdout, "result = '%s'\n", result.c_str());
+                    fprintf(stdout, "%s\n", result.c_str());
                 }
 
                 audio.clear();

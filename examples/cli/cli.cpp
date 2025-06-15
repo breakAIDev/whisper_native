@@ -505,7 +505,7 @@ int main(int argc, char ** argv) {
         int n_tokens0 = 0;
         int n_tokens  = 0;
 
-        fprintf(stdout, "%s: Athenea ...\n", __func__);
+        // fprintf(stdout, "%s: Athenea ...\n", __func__);
 
         while (is_running)
         {
@@ -515,16 +515,16 @@ int main(int argc, char ** argv) {
             audio.get(1500, pcmf32);
 
             if (::vad_simple(pcmf32, WHISPER_SAMPLE_RATE, 1000, params.vad_thold, params.freq_thold, params.print_energy)) {
-                fprintf(stdout, "%s: Speech detected! Processing ...\n", __func__);
+                // fprintf(stdout, "%s: Speech detected! Processing ...\n", __func__);
 
                 int64_t t_ms = 0;
 
                 // we have heard the activation phrase, now detect the commands
                 audio.get(params.command_ms, pcmf32);
 
-                fprintf(stderr, "%s: voice -> %d samples, %.1f sec ...\n", __func__, int(pcmf32.size()), float(pcmf32.size())/WHISPER_SAMPLE_RATE);
+                // fprintf(stderr, "%s: voice -> %d samples, %.1f sec ...\n", __func__, int(pcmf32.size()), float(pcmf32.size())/WHISPER_SAMPLE_RATE);
 
-                const auto t_start = std::chrono::high_resolution_clock::now();
+                // const auto t_start = std::chrono::high_resolution_clock::now();
                 std::string result = "";
                 if (whisper_full_parallel(ctx, wparams, pcmf32.data(), pcmf32.size(), params.n_processors) == 0) {
                     const int n_segments = whisper_full_n_segments(ctx);
@@ -534,23 +534,24 @@ int main(int argc, char ** argv) {
     
                         result += text;
     
-                        const int n = whisper_full_n_tokens(ctx, i);
-                        for (int j = 0; j < n; ++j) {
-                            const auto token = whisper_full_get_token_data(ctx, i, j);
+                        // const int n = whisper_full_n_tokens(ctx, i);
+                        // for (int j = 0; j < n; ++j) {
+                        //     const auto token = whisper_full_get_token_data(ctx, i, j);
     
-                            if(token.plog > 0.0f)
-                                exit(0);
-                            logprob_min = std::min(logprob_min, token.plog);
-                            logprob_sum += token.plog;
-                            ++n_tokens;
-                        }
+                        //     if(token.plog > 0.0f)
+                        //         exit(0);
+                        //     logprob_min = std::min(logprob_min, token.plog);
+                        //     logprob_sum += token.plog;
+                        //     ++n_tokens;
+                        // }
                     }
     
-                    const auto t_end = std::chrono::high_resolution_clock::now();
-                    t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
+                    // const auto t_end = std::chrono::high_resolution_clock::now();
+                    // t_ms = std::chrono::duration_cast<std::chrono::milliseconds>(t_end - t_start).count();
 
-                    const float p = 100.0f * std::exp(logprob_min);
-                    fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
+                    // const float p = 100.0f * std::exp(logprob_min);
+                    // fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
+                    fprintf(stdout, "%s:   result = '%s'\n", __func__, result.c_str());
                 }
 
                 audio.clear();

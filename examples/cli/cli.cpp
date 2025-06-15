@@ -74,7 +74,7 @@ struct whisper_params {
     bool print_colors    = false;
     bool print_confidence= false;
     bool print_progress  = false;
-    bool no_timestamps   = false;
+    bool no_timestamps   = true;
     bool log_score       = false;
     bool use_gpu         = true;
     bool flash_attn      = false;
@@ -85,7 +85,7 @@ struct whisper_params {
     std::string language  = "en";
     std::string prompt;
     std::string font_path = "/System/Library/Fonts/Supplemental/Courier New Bold.ttf";
-    std::string model     = "models/ggml-base.en.bin";
+    std::string model     = "/etc/models/ggml-tiny.en.bin";
     std::string grammar;
     std::string grammar_rule;
 
@@ -505,7 +505,7 @@ int main(int argc, char ** argv) {
         int n_tokens0 = 0;
         int n_tokens  = 0;
 
-        // fprintf(stdout, "%s: Athenea ...\n", __func__);
+        fprintf(stdout, "Speech-to-Text Start\n");
 
         while (is_running)
         {
@@ -551,7 +551,7 @@ int main(int argc, char ** argv) {
 
                     // const float p = 100.0f * std::exp(logprob_min);
                     // fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
-                    fprintf(stdout, "%s:   result = '%s'\n", __func__, result.c_str());
+                    fprintf(stdout, "result = '%s'\n", result.c_str());
                 }
 
                 audio.clear();

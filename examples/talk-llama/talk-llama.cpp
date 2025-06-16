@@ -5,6 +5,7 @@
 #include "common.h"
 #include "common-whisper.h"
 #include "whisper.h"
+#include "grammar-parser.h"
 #include "llama.h"
 
 #include <chrono>
@@ -286,8 +287,7 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  -l LANG,   --language LANG     [%-7s] spoken language ('auto' for auto-detect)\n",       params.language.c_str());
     fprintf(stderr, "  -dl,       --detect-language   [%-7s] exit after automatically detecting language\n",    params.detect_language ? "true" : "false");
     fprintf(stderr, "             --prompt PROMPT     [%-7s] initial prompt (max n_text_ctx/2 tokens)\n",       params.prompt.c_str());
-    fprintf(stderr, "  -m FNAME,  --model FNAME       [%-7s] model path\n",                                     params.model.c_str());
-    fprintf(stderr, "  -f FNAME,  --file FNAME        [%-7s] input audio file path\n",                            "");
+    fprintf(stderr, "  -f FNAME,  --file FNAME        [%-7s] input audio file path\n",                          "");
     fprintf(stderr, "  -oved D,   --ov-e-device DNAME [%-7s] the OpenVINO device used for encode inference\n",  params.openvino_encode_device.c_str());
     fprintf(stderr, "  -ls,       --log-score         [%-7s] log best decoder scores of tokens\n",              params.log_score?"true":"false");
     fprintf(stderr, "  -ng,       --no-gpu            [%-7s] disable GPU\n",                                    params.use_gpu ? "false" : "true");
@@ -407,7 +407,7 @@ int main(int argc, char ** argv) {
     }
 
     // initialize openvino encoder. this has no effect on whisper.cpp builds that don't have OpenVINO configured
-    whisper_ctx_init_openvino_encoder(ctx, nullptr, params.openvino_encode_device.c_str(), nullptr);
+    whisper_ctx_init_openvino_encoder(ctx_wsp, nullptr, params.openvino_encode_device.c_str(), nullptr);
 
     if (!params.grammar.empty()) {
         auto & grammar = params.grammar_parsed;
@@ -632,6 +632,7 @@ int main(int argc, char ** argv) {
 
         bool is_running = true;
         int n_tokens  = 0;
+        const std::string chat_symb = ":";
         const std::string prompt_whisper = ::replace(k_prompt_whisper, "{1}", params.bot_name);
 
         // construct the initial prompt for LLaMA inference
@@ -872,14 +873,12 @@ int main(int argc, char ** argv) {
 
                 const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, text_heard.c_str(), false);
 
-                if (text_heard.empty() || tokens.empty() || force_speak) {
+                if (text_heard.empty() || tokens.empty()) {
                     //fprintf(stdout, "%s: Heard nothing, skipping ...\n", __func__);
                     audio.clear();
 
                     continue;
                 }
-
-                force_speak = false;
 
                 text_heard.insert(0, 1, ' ');
                 text_heard += "\n" + params.bot_name + chat_symb;
@@ -1014,21 +1013,21 @@ int main(int argc, char ** argv) {
                 audio.clear();
             }
         }
+
+        audio.pause();
+
+        whisper_print_timings(ctx_wsp);
+        whisper_free(ctx_wsp);
+
+        llama_perf_sampler_print(smpl);
+        llama_perf_context_print(ctx_llama);
+
+        llama_sampler_free(smpl);
+        llama_batch_free(batch);
+        llama_free(ctx_llama);
+
+        llama_backend_free();
     }
-
-    audio.pause();
-
-    whisper_print_timings(ctx_wsp);
-    whisper_free(ctx_wsp);
-
-    llama_perf_sampler_print(smpl);
-    llama_perf_context_print(ctx_llama);
-
-    llama_sampler_free(smpl);
-    llama_batch_free(batch);
-    llama_free(ctx_llama);
-
-    llama_backend_free();
 
     return 0;
 }

@@ -368,7 +368,7 @@ int main(int argc, char ** argv) {
                 params.translate ? "translate" : "transcribe",
                 params.tinydiarize ? "tdrz = 1, " : "",
                 params.no_timestamps ? 0 : 1);
-        fflush(stderr);
+        // fflush(stderr);
 
         if (params.print_colors) {
             fprintf(stderr, "%s: color scheme: red (low confidence), yellow (medium), green (high confidence)\n", __func__);
@@ -507,12 +507,19 @@ int main(int argc, char ** argv) {
         int n_tokens  = 0;
 
         fprintf(stdout, "Speech-to-Text Start\n");
-        fflush(stdout);
+        // fflush(stdout);
 
         while (is_running)
         {
             // handle Ctrl + C
             is_running = sdl_poll_events();
+
+            int isOnline;
+            fscanf(stdin, "%d", &isOnline);
+
+            if(isOnline == 0) {
+                fprintf(stdout, "network offline: whisper\n");
+            }
 
             audio.get(1500, pcmf32);
 
@@ -554,7 +561,7 @@ int main(int argc, char ** argv) {
                     // const float p = 100.0f * std::exp(logprob_min);
                     // fprintf(stdout, "%s:   DEBUG: txt = '%s', prob = %.2f%%, (t = %lld ms)\n", __func__, result.c_str(), p, (long long)t_ms);
                     fprintf(stdout, "%s\n", result.c_str());
-                    fflush(stdout);
+                    // fflush(stdout);
                 }
 
                 audio.clear();

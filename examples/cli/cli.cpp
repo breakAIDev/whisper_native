@@ -519,6 +519,7 @@ int main(int argc, char ** argv) {
 
             if(isOnline == 0) {
                 fprintf(stdout, "network offline: whisper\n");
+                fflush(stdout);
             }
 
             audio.get(1500, pcmf32);

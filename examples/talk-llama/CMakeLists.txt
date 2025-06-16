@@ -37,4 +37,6 @@ if (WHISPER_SDL2)
     endif()
 
     include(DefaultTargetOptions)
+
+    install(TARGETS ${TARGET} RUNTIME)
 endif ()

@@ -432,7 +432,7 @@ int main(int argc, char ** argv) {
         }
     }
 
-    if (!whisper_is_multilingual(ctx)) {
+    if (!whisper_is_multilingual(ctx_wsp)) {
         if (params.language != "en" || params.translate) {
             params.language = "en";
             params.translate = false;
@@ -829,11 +829,11 @@ int main(int argc, char ** argv) {
 
                 // const auto t_start = std::chrono::high_resolution_clock::now();
                 std::string result = "";
-                if (whisper_full_parallel(ctx, wparams, pcmf32.data(), pcmf32.size(), params.n_processors) == 0) {
-                    const int n_segments = whisper_full_n_segments(ctx);
+                if (whisper_full_parallel(ctx_wsp, wparams, pcmf32.data(), pcmf32.size(), params.n_processors) == 0) {
+                    const int n_segments = whisper_full_n_segments(ctx_wsp);
 
                     for (int i = 0; i < n_segments; ++i) {
-                        const char * text = whisper_full_get_segment_text(ctx, i);
+                        const char * text = whisper_full_get_segment_text(ctx_wsp, i);
     
                         result += text;
                     }

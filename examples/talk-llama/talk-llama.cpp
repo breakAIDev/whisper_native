@@ -458,7 +458,7 @@ int main(int argc, char ** argv) {
                 params.translate ? "translate" : "transcribe",
                 params.tinydiarize ? "tdrz = 1, " : "",
                 params.no_timestamps ? 0 : 1);
-        // fflush(stderr);
+        fflush(stderr);
 
         if (params.print_colors) {
             fprintf(stderr, "%s: color scheme: red (low confidence), yellow (medium), green (high confidence)\n", __func__);
@@ -801,22 +801,28 @@ int main(int argc, char ** argv) {
             params.person + chat_symb,
         };        
         fprintf(stdout, "Speech-to-Text with LLAMA Start\n");
-        // fflush(stdout);
+        fflush(stdout);
 
         while (is_running)
         {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            std::string strIsOnline;
-            fscanf(stdin, "%\n", strIsOnline);
+            char buffer[16];
+            if (fgets(buffer, sizeof(buffer), stdin)) {
+                std::string strIsOnline(buffer);
+                // remove trailing newline
+                strIsOnline.erase(std::remove(strIsOnline.begin(), strIsOnline.end(), '\n'), strIsOnline.end());
 
-            if(strIsOnline == "OFF") {
-                fprintf(stdout, "network offline: whisper\n");
-                fflush(stdout);
-            } else if(strIsOnline == "ON") {
-                fprintf(stdout, "network online: whisper\n");
-                fflush(stdout);
+                if (strIsOnline == "OFF") {
+                    fprintf(stdout, "network offline: whisper\n");
+                    fflush(stdout);
+                    // e.g. audio.pause(); or skip processing
+                } else if (strIsOnline == "ON") {
+                    fprintf(stdout, "network online: whisper\n");
+                    fflush(stdout);
+                    // e.g. audio.resume(); or continue processing
+                }
             }
             
             // delay
@@ -841,7 +847,6 @@ int main(int argc, char ** argv) {
                         result += text;
                     }
                     fprintf(stdout, "%s\n", result.c_str());
-                    // fflush(stdout);
                 }
 
                 const auto words = get_words(result);

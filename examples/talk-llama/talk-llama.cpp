@@ -319,18 +319,6 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "\n");
 }
 
-static std::vector<std::string> get_words(const std::string &txt) {
-    std::vector<std::string> words;
-
-    std::istringstream iss(txt);
-    std::string word;
-    while (iss >> word) {
-        words.push_back(word);
-    }
-
-    return words;
-}
-
 const std::string k_prompt_whisper = R"(A conversation with a person called {1}.)";
 
 const std::string k_prompt_llama = R"(Text transcript of a never ending dialog, where {0} interacts with an AI assistant named {1}.
@@ -458,7 +446,6 @@ int main(int argc, char ** argv) {
                 params.translate ? "translate" : "transcribe",
                 params.tinydiarize ? "tdrz = 1, " : "",
                 params.no_timestamps ? 0 : 1);
-        fflush(stderr);
 
         if (params.print_colors) {
             fprintf(stderr, "%s: color scheme: red (low confidence), yellow (medium), green (high confidence)\n", __func__);
@@ -749,7 +736,6 @@ int main(int argc, char ** argv) {
         if (params.verbose_prompt) {
             fprintf(stdout, "\n");
             fprintf(stdout, "%s", prompt_llama.c_str());
-            fflush(stdout);
         }
 
         // debug message about similarity of saved session, if applicable
@@ -779,7 +765,6 @@ int main(int argc, char ** argv) {
 
         printf("%s : done! start speaking in the microphone\n", __func__);
         printf("%s%s", params.person.c_str(), chat_symb.c_str());
-        fflush(stdout);
 
         // wait for 3 second to avoid any buffered noise
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -810,20 +795,16 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            memset(buffer, 0, sizeof(buffer));
-            if (fscanf(stdin, "%s\n", buffer)) {
-
-                std::string strIsOnline(buffer);
-                if (strIsOnline == "OFF") {
-                    fprintf(stdout, "network offline: whisper\n");
-                    fflush(stdout);
-                    // e.g. audio.pause(); or skip processing
-                } else if (strIsOnline == "ON") {
-                    fprintf(stdout, "network online: whisper\n");
-                    fflush(stdout);
-                    // e.g. audio.resume(); or continue processing
-                }
-            }
+            // memset(buffer, 0, sizeof(buffer));
+            // if (fscanf(stdin, "%s\n", buffer)) {
+            //     // std::string strIsOnline(buffer);
+                
+            //     // if (strIsOnline == "OFF") {
+            //     //     fprintf(stdout, "network offline: whisper\n");
+            //     // } else if (strIsOnline == "ON") {
+            //     //     fprintf(stdout, "network online: whisper\n");
+            //     // }
+            // }
             
             // delay
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -846,54 +827,50 @@ int main(int argc, char ** argv) {
     
                         result += text;
                     }
+                    
                     fprintf(stdout, "%s\n", result.c_str());
-                }
-
-                const auto words = get_words(result);
-
-                std::string text_heard;
-
-                for (int i = 0; i < (int) words.size(); ++i) {
-                    text_heard += words[i] + " ";
+                    if(!strcmp(buffer, "ON")) {
+                        fflush(stdout);
+                        continue;
+                    }
                 }
 
                 // remove text between brackets using regex
                 {
                     std::regex re("\\[.*?\\]");
-                    text_heard = std::regex_replace(text_heard, re, "");
+                    result = std::regex_replace(result, re, "");
                 }
 
                 // remove text between brackets using regex
                 {
                     std::regex re("\\(.*?\\)");
-                    text_heard = std::regex_replace(text_heard, re, "");
+                    result = std::regex_replace(result, re, "");
                 }
 
                 // remove all characters, except for letters, numbers, punctuation and ':', '\'', '-', ' '
-                text_heard = std::regex_replace(text_heard, std::regex("[^a-zA-Z0-9\\.,\\?!\\s\\:\\'\\-]"), "");
+                result = std::regex_replace(result, std::regex("[^a-zA-Z0-9\\.,\\?!\\s\\:\\'\\-]"), "");
 
                 // take first line
-                text_heard = text_heard.substr(0, text_heard.find_first_of('\n'));
+                result = result.substr(0, result.find_first_of('\n'));
 
                 // remove leading and trailing whitespace
-                text_heard = std::regex_replace(text_heard, std::regex("^\\s+"), "");
-                text_heard = std::regex_replace(text_heard, std::regex("\\s+$"), "");
+                result = std::regex_replace(result, std::regex("^\\s+"), "");
+                result = std::regex_replace(result, std::regex("\\s+$"), "");
 
-                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, text_heard.c_str(), false);
+                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
-                if (text_heard.empty() || tokens.empty()) {
+                if (result.empty() || tokens.empty()) {
                     //fprintf(stdout, "%s: Heard nothing, skipping ...\n", __func__);
                     audio.clear();
 
                     continue;
                 }
 
-                text_heard.insert(0, 1, ' ');
-                text_heard += "\n" + params.bot_name + chat_symb;
-                fprintf(stdout, "%s%s%s", "\033[1m", text_heard.c_str(), "\033[0m");
-                fflush(stdout);
+                result.insert(0, 1, ' ');
+                result += "\n" + params.bot_name + chat_symb;
+                fprintf(stdout, "%s%s%s", "\033[1m", result.c_str(), "\033[0m");
 
-                embd = ::llama_tokenize(ctx_llama, text_heard, false);
+                embd = ::llama_tokenize(ctx_llama, result, false);
 
                 // Append the new input tokens to the session_tokens vector
                 if (!path_session.empty()) {
@@ -986,8 +963,9 @@ int main(int argc, char ** argv) {
 
                             text_to_speak += llama_token_to_piece(ctx_llama, id);
 
-                            printf("%s", llama_token_to_piece(ctx_llama, id).c_str());
+                            fprintf(stdout, "%s", llama_token_to_piece(ctx_llama, id).c_str());
                             fflush(stdout);
+
                         }
                     }
 

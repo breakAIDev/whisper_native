@@ -505,6 +505,7 @@ int main(int argc, char ** argv) {
 
         int n_tokens0 = 0;
         int n_tokens  = 0;
+        char buffer[5] = {0};
 
         fprintf(stdout, "Speech-to-Text Start\n");
         // fflush(stdout);
@@ -514,15 +515,19 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            std::string strIsOnline;
-            fscanf(stdin, "%s\n", strIsOnline);
+            memset(buffer, 0, sizeof(buffer));
+            if (fscanf(stdin, "%s\n", buffer)) {
 
-            if(strIsOnline == "OFF") {
-                fprintf(stdout, "network offline: whisper\n");
-                fflush(stdout);
-            } else if(strIsOnline == "ON") {
-                fprintf(stdout, "network online: whisper\n");
-                fflush(stdout);
+                std::string strIsOnline(buffer);
+                if (strIsOnline == "OFF") {
+                    fprintf(stdout, "network offline: whisper\n");
+                    fflush(stdout);
+                    // e.g. audio.pause(); or skip processing
+                } else if (strIsOnline == "ON") {
+                    fprintf(stdout, "network online: whisper\n");
+                    fflush(stdout);
+                    // e.g. audio.resume(); or continue processing
+                }
             }
 
             audio.get(1500, pcmf32);

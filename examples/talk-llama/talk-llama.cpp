@@ -795,16 +795,16 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            // memset(buffer, 0, sizeof(buffer));
-            // if (fscanf(stdin, "%s\n", buffer)) {
-            //     // std::string strIsOnline(buffer);
+            memset(buffer, 0, sizeof(buffer));
+            if (fscanf(stdin, "%s\n", buffer)) {
+                // std::string strIsOnline(buffer);
                 
-            //     // if (strIsOnline == "OFF") {
-            //     //     fprintf(stdout, "network offline: whisper\n");
-            //     // } else if (strIsOnline == "ON") {
-            //     //     fprintf(stdout, "network online: whisper\n");
-            //     // }
-            // }
+                // if (strIsOnline == "OFF") {
+                //     fprintf(stdout, "network offline: whisper\n");
+                // } else if (strIsOnline == "ON") {
+                //     fprintf(stdout, "network online: whisper\n");
+                // }
+            }
             
             // delay
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -965,7 +965,7 @@ int main(int argc, char ** argv) {
 
                             fprintf(stdout, "%s", llama_token_to_piece(ctx_llama, id).c_str());
                             fflush(stdout);
-
+                            
                         }
                     }
 

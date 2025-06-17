@@ -790,6 +790,8 @@ int main(int argc, char ** argv) {
         const int n_keep   = embd_inp.size();
         const int n_ctx    = llama_n_ctx(ctx_llama);
 
+        char buffer[5] = {0};
+
         int n_past = n_keep;
         int n_prev = 64; // TODO arg
         int n_session_consumed = !path_session.empty() && session_tokens.size() > 0 ? session_tokens.size() : 0;
@@ -808,12 +810,10 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            char buffer[16];
-            if (fgets(buffer, sizeof(buffer), stdin)) {
-                std::string strIsOnline(buffer);
-                // remove trailing newline
-                strIsOnline.erase(std::remove(strIsOnline.begin(), strIsOnline.end(), '\n'), strIsOnline.end());
+            memset(buffer, 0, sizeof(buffer));
+            if (fscanf(stdin, "%s\n", buffer)) {
 
+                std::string strIsOnline(buffer);
                 if (strIsOnline == "OFF") {
                     fprintf(stdout, "network offline: whisper\n");
                     fflush(stdout);

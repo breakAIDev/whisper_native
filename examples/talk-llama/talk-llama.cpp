@@ -808,10 +808,10 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            int isOnline;
-            fscanf(stdin, "%d", &isOnline);
+            std::string strIsOnline;
+            fscanf(stdin, "%\n", strIsOnline);
 
-            if(isOnline == 0) {
+            if(strIsOnline == "OFF") {
                 fprintf(stdout, "network offline: whisper\n");
                 fflush(stdout);
             }

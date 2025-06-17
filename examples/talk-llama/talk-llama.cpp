@@ -814,6 +814,9 @@ int main(int argc, char ** argv) {
             if(strIsOnline == "OFF") {
                 fprintf(stdout, "network offline: whisper\n");
                 fflush(stdout);
+            } else if(strIsOnline == "ON") {
+                fprintf(stdout, "network online: whisper\n");
+                fflush(stdout);
             }
             
             // delay

@@ -131,7 +131,7 @@ struct whisper_params {
     std::string bot_name     = "Aura";
     std::string language     = "en";
     std::string model_wsp    = "/etc/models/ggml-tiny.en.bin";
-    std::string model_llama  = "/etc/models/gemma-3-1b-it-Q4_4_M.gguf";
+    std::string model_llama  = "/etc/models/gemma-3-1b-it-Q4_K_M.gguf";
     std::string speak        = "/etc/talk-llama/speak";
     std::string speak_file   = "/etc/talk-llama/to_speak.txt";
     std::string prompt       = "";
@@ -221,7 +221,7 @@ static bool whisper_params_parse(int argc, char ** argv, whisper_params & params
         else if (arg == "-p"    || arg == "--person")           { params.person          = argv[++i]; }
         else if (arg == "-bn"   || arg == "--bot-name")         { params.bot_name        = argv[++i]; }
         else if (arg == "-mw"   || arg == "--model-whisper")    { params.model_wsp       = argv[++i]; }
-        else if (arg == "-ml"   || arg == "--model-llama")      { params.model_llama     = argv[++i]; }
+        else if (arg == "-mll"  || arg == "--model-llama")      { params.model_llama     = argv[++i]; }
         else if (arg == "-s"    || arg == "--speak")            { params.speak           = argv[++i]; }
         else if (arg == "-sf"   || arg == "--speak-file")       { params.speak_file      = argv[++i]; }
         else if (arg == "--prompt-file")                        {
@@ -311,7 +311,7 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  -p NAME,  --person NAME        [%-7s] person name (for prompt selection)\n",             params.person.c_str());
     fprintf(stderr, "  -bn NAME, --bot-name NAME      [%-7s] bot name (to display)\n",                          params.bot_name.c_str());
     fprintf(stderr, "  -mw FILE, --model-whisper      [%-7s] whisper model file\n",                             params.model_wsp.c_str());
-    fprintf(stderr, "  -ml FILE, --model-llama        [%-7s] llama model file\n",                               params.model_llama.c_str());
+    fprintf(stderr, "  -mll FILE, --model-llama       [%-7s] llama model file\n",                               params.model_llama.c_str());
     fprintf(stderr, "  -s FILE,  --speak TEXT         [%-7s] command for TTS\n",                                params.speak.c_str());
     fprintf(stderr, "  -sf FILE, --speak-file         [%-7s] file to pass to TTS\n",                            params.speak_file.c_str());
     fprintf(stderr, "  --prompt-file FNAME            [%-7s] file with custom prompt to start dialog\n",     "");

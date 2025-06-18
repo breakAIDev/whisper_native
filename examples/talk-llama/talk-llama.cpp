@@ -839,11 +839,9 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                // memset(buffer, 0, sizeof(buffer));
-                // memset(tpBuffer, 0, sizeof(tpBuffer));
+                memset(tpBuffer, 0, sizeof(tpBuffer));
                 while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
                     strcmp(buffer, tpBuffer);
-                    tpBuffer[4] = 0;
                     // std::string strIsOnline(buffer);
                     
                     // if (strIsOnline == "OFF") {

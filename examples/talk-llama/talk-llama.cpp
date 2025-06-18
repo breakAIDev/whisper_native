@@ -56,7 +56,7 @@ static std::string llama_token_to_piece(const struct llama_context * ctx, llama_
 // command-line parameters
 struct whisper_params {
     int32_t n_threads  = std::min(4, (int32_t) std::thread::hardware_concurrency());
-    int32_t n_processors  = 1;
+    int32_t n_processors  = 2;
     int32_t offset_t_ms   = 0;
     int32_t offset_n      = 0;
     int32_t duration_ms   = 0;
@@ -218,7 +218,7 @@ static bool whisper_params_parse(int argc, char ** argv, whisper_params & params
         else if (arg == "-vmsd" || arg == "--vad-max-speech-duration-s")   { params.vad_max_speech_duration_s   = std::stof(ARGV_NEXT); }
         else if (arg == "-vp"   || arg == "--vad-speech-pad-ms")           { params.vad_speech_pad_ms           = std::stoi(ARGV_NEXT); }
         else if (arg == "-vo"   || arg == "--vad-samples-overlap")         { params.vad_samples_overlap         = std::stof(ARGV_NEXT); }
-        else if (arg == "-p"    || arg == "--person")           { params.person          = argv[++i]; }
+        else if (arg == "-pn"   || arg == "--person")           { params.person          = argv[++i]; }
         else if (arg == "-bn"   || arg == "--bot-name")         { params.bot_name        = argv[++i]; }
         else if (arg == "-mw"   || arg == "--model-whisper")    { params.model_wsp       = argv[++i]; }
         else if (arg == "-mll"  || arg == "--model-llama")      { params.model_llama     = argv[++i]; }
@@ -308,7 +308,7 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
                                                                                                                               std::string("FLT_MAX").c_str() : std::to_string(params.vad_max_speech_duration_s).c_str());
     fprintf(stderr, "  -vp N,     --vad-speech-pad-ms           N [%-7d] VAD speech padding (extend segments)\n",             params.vad_speech_pad_ms);
     fprintf(stderr, "  -vo N,     --vad-samples-overlap         N [%-7.2f] VAD samples overlap (seconds between segments)\n", params.vad_samples_overlap);
-    fprintf(stderr, "  -p NAME,  --person NAME        [%-7s] person name (for prompt selection)\n",             params.person.c_str());
+    fprintf(stderr, "  -pn NAME,  --person NAME        [%-7s] person name (for prompt selection)\n",             params.person.c_str());
     fprintf(stderr, "  -bn NAME, --bot-name NAME      [%-7s] bot name (to display)\n",                          params.bot_name.c_str());
     fprintf(stderr, "  -mw FILE, --model-whisper      [%-7s] whisper model file\n",                             params.model_wsp.c_str());
     fprintf(stderr, "  -mll FILE, --model-llama       [%-7s] llama model file\n",                               params.model_llama.c_str());
@@ -318,8 +318,6 @@ void whisper_print_usage(int /*argc*/, char ** argv, const whisper_params & para
     fprintf(stderr, "  --session FNAME                   file to cache model state in (may be large!) (default: none)\n");
     fprintf(stderr, "\n");
 }
-
-const std::string k_prompt_whisper = R"(A conversation with a person called {1}.)";
 
 const std::string k_prompt_llama = R"(Text transcript of a never ending dialog, where {0} interacts with an AI assistant named {1}.
 {1} is helpful, kind, honest, friendly, good at writing and never fails to answer {0}’s requests immediately and with details and precision.
@@ -376,7 +374,7 @@ int main(int argc, char ** argv) {
     }
 
     if (params.diarize && params.tinydiarize) {
-        fprintf(stderr, "error: cannot use both --diarize and --tinydiarize\n");
+        printf("error: cannot use both --diarize and --tinydiarize\n");
         whisper_print_usage(argc, argv, params);
         exit(0);
     }
@@ -390,7 +388,7 @@ int main(int argc, char ** argv) {
     struct whisper_context * ctx_wsp = whisper_init_from_file_with_params(params.model_wsp.c_str(), cparams);
  
     if (!ctx_wsp) {
-        fprintf(stderr, "No whisper.cpp model specified. Please provide using -mw <modelfile>\n");
+        printf("No whisper.cpp model specified. Please provide using -mw <modelfile>\n");
         return 3;
     }
 
@@ -411,12 +409,12 @@ int main(int argc, char ** argv) {
 
         // will be empty (default) if there are parse errors
         if (grammar.rules.empty()) {
-            fprintf(stderr, "error: failed to parse grammar \"%s\"\n", params.grammar.c_str());
+            printf("error: failed to parse grammar \"%s\"\n", params.grammar.c_str());
             return 4;
         } else {
-            fprintf(stderr, "%s: grammar:\n", __func__);
+            printf("%s: grammar:\n", __func__);
             grammar_parser::print_grammar(stderr, grammar);
-            fprintf(stderr, "\n");
+            printf("\n");
         }
     }
 
@@ -424,7 +422,7 @@ int main(int argc, char ** argv) {
         if (params.language != "en" || params.translate) {
             params.language = "en";
             params.translate = false;
-            fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
+            printf("%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
         }
     }
 
@@ -434,13 +432,13 @@ int main(int argc, char ** argv) {
 
     if (!params.no_prints) {
         // print system information
-        fprintf(stderr, "\n");
-        fprintf(stderr, "system_info: n_threads = %d / %d | %s\n",
+        printf("\n");
+        printf("system_info: n_threads = %d / %d | %s\n",
                 params.n_threads*params.n_processors, std::thread::hardware_concurrency(), whisper_print_system_info());
 
         // print some info about the processing
-        fprintf(stderr, "\n");
-        fprintf(stderr, "%s: processing -> %d threads, %d processors, %d beams + best of %d, lang = %s, task = %s, %stimestamps = %d ...\n",
+        printf("\n");
+        printf("%s: processing -> %d threads, %d processors, %d beams + best of %d, lang = %s, task = %s, %stimestamps = %d ...\n",
                 __func__, params.n_threads, params.n_processors, params.beam_size, params.best_of,
                 params.language.c_str(),
                 params.translate ? "translate" : "transcribe",
@@ -448,11 +446,11 @@ int main(int argc, char ** argv) {
                 params.no_timestamps ? 0 : 1);
 
         if (params.print_colors) {
-            fprintf(stderr, "%s: color scheme: red (low confidence), yellow (medium), green (high confidence)\n", __func__);
+            printf("%s: color scheme: red (low confidence), yellow (medium), green (high confidence)\n", __func__);
         } else if (params.print_confidence) {
-            fprintf(stderr, "%s: confidence: highlighted (low confidence), underlined (medium), dim (high confidence)\n", __func__);
+            printf("%s: confidence: highlighted (low confidence), underlined (medium), dim (high confidence)\n", __func__);
         }
-        fprintf(stderr, "\n");
+        printf("\n");
     }
 
     // llama init
@@ -467,7 +465,7 @@ int main(int argc, char ** argv) {
 
     struct llama_model * model_llama = llama_model_load_from_file(params.model_llama.c_str(), lmparams);
     if (!model_llama) {
-        fprintf(stderr, "No llama.cpp model specified. Please provide using -ml <modelfile>\n");
+        printf("No llama.cpp model specified. Please provide using -ml <modelfile>\n");
         return 1;
     }
 
@@ -484,23 +482,23 @@ int main(int argc, char ** argv) {
 
     // print some info about the processing
     {
-        fprintf(stderr, "\n");
+        printf("\n");
 
         if (!whisper_is_multilingual(ctx_wsp)) {
             if (params.language != "en" || params.translate) {
                 params.language = "en";
                 params.translate = false;
-                fprintf(stderr, "%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
+                printf("%s: WARNING: model is not multilingual, ignoring language and translation options\n", __func__);
             }
         }
-        fprintf(stderr, "%s: processing, %d threads, lang = %s, task = %s, timestamps = %d ...\n",
+        printf("%s: processing, %d threads, lang = %s, task = %s, timestamps = %d ...\n",
                 __func__,
                 params.n_threads,
                 params.language.c_str(),
                 params.translate ? "translate" : "transcribe",
                 params.no_timestamps ? 0 : 1);
 
-        fprintf(stderr, "\n");
+        printf("\n");
     }
 
     // run the inference
@@ -567,7 +565,7 @@ int main(int argc, char ** argv) {
 
         if (use_grammar) {
             if (grammar_parsed.symbol_ids.find(params.grammar_rule) == grammar_parsed.symbol_ids.end()) {
-                fprintf(stderr, "%s: warning: grammar rule '%s' not found - skipping grammar sampling\n", __func__, params.grammar_rule.c_str());
+                printf("%s: warning: grammar rule '%s' not found - skipping grammar sampling\n", __func__, params.grammar_rule.c_str());
             } else {
                 wparams.grammar_rules = grammar_rules.data();
                 wparams.n_grammar_rules = grammar_rules.size();
@@ -611,7 +609,7 @@ int main(int argc, char ** argv) {
         // init audio
         audio_async audio(params.buffer_ms);
         if (!audio.init(params.capture_id, WHISPER_SAMPLE_RATE)) {
-            fprintf(stderr, "%s: audio.init() failed!\n", __func__);
+            printf("%s: audio.init() failed!\n", __func__);
             return 1;
         }
         
@@ -620,7 +618,6 @@ int main(int argc, char ** argv) {
         bool is_running = true;
         int n_tokens  = 0;
         const std::string chat_symb = ":";
-        const std::string prompt_whisper = ::replace(k_prompt_whisper, "{1}", params.bot_name);
 
         // construct the initial prompt for LLaMA inference
         std::string prompt_llama = params.prompt.empty() ? k_prompt_llama : params.prompt;
@@ -686,7 +683,7 @@ int main(int argc, char ** argv) {
         auto embd_inp = ::llama_tokenize(ctx_llama, prompt_llama, true);
 
         if (!path_session.empty()) {
-            fprintf(stderr, "%s: attempting to load saved session from %s\n", __func__, path_session.c_str());
+            printf("%s: attempting to load saved session from %s\n", __func__, path_session.c_str());
 
             // fopen to check for existing session
             FILE * fp = std::fopen(path_session.c_str(), "rb");
@@ -696,7 +693,7 @@ int main(int argc, char ** argv) {
                 session_tokens.resize(llama_n_ctx(ctx_llama));
                 size_t n_token_count_out = 0;
                 if (!llama_state_load_file(ctx_llama, path_session.c_str(), session_tokens.data(), session_tokens.capacity(), &n_token_count_out)) {
-                    fprintf(stderr, "%s: error: failed to load session file '%s'\n", __func__, path_session.c_str());
+                    printf("%s: error: failed to load session file '%s'\n", __func__, path_session.c_str());
                     return 1;
                 }
                 session_tokens.resize(n_token_count_out);
@@ -704,16 +701,14 @@ int main(int argc, char ** argv) {
                     embd_inp[i] = session_tokens[i];
                 }
 
-                fprintf(stderr, "%s: loaded a session with prompt size of %d tokens\n", __func__, (int) session_tokens.size());
+                printf("%s: loaded a session with prompt size of %d tokens\n", __func__, (int) session_tokens.size());
             } else {
-                fprintf(stderr, "%s: session file does not exist, will create\n", __func__);
+                printf("%s: session file does not exist, will create\n", __func__);
             }
         }
 
         // evaluate the initial prompt
-
-        printf("\n");
-        printf("%s : initializing - please wait ...\n", __func__);
+        printf("\n%s : initializing - please wait ...\n", __func__);
 
         // prepare batch
         {
@@ -729,13 +724,12 @@ int main(int argc, char ** argv) {
         }
 
         if (llama_decode(ctx_llama, batch)) {
-            fprintf(stderr, "%s : failed to decode\n", __func__);
+            printf("%s : failed to decode\n", __func__);
             return 1;
         }
 
         if (params.verbose_prompt) {
-            fprintf(stdout, "\n");
-            fprintf(stdout, "%s", prompt_llama.c_str());
+            printf("\n%s", prompt_llama.c_str());
         }
 
         // debug message about similarity of saved session, if applicable
@@ -748,12 +742,12 @@ int main(int argc, char ** argv) {
                 n_matching_session_tokens++;
             }
             if (n_matching_session_tokens >= embd_inp.size()) {
-                fprintf(stderr, "%s: session file has exact match for prompt!\n", __func__);
+                printf("%s: session file has exact match for prompt!\n", __func__);
             } else if (n_matching_session_tokens < (embd_inp.size() / 2)) {
-                fprintf(stderr, "%s: warning: session file has low similarity to prompt (%zu / %zu tokens); will mostly be reevaluated\n",
+                printf("%s: warning: session file has low similarity to prompt (%zu / %zu tokens); will mostly be reevaluated\n",
                     __func__, n_matching_session_tokens, embd_inp.size());
             } else {
-                fprintf(stderr, "%s: session file matches %zu / %zu tokens of prompt\n",
+                printf("%s: session file matches %zu / %zu tokens of prompt\n",
                     __func__, n_matching_session_tokens, embd_inp.size());
             }
         }
@@ -762,13 +756,6 @@ int main(int argc, char ** argv) {
         // if we loaded a session with at least 75% similarity. It's currently just used to speed up the
         // initial prompt so it doesn't need to be an exact match.
         bool need_to_save_session = !path_session.empty() && n_matching_session_tokens < (embd_inp.size() * 3 / 4);
-
-        printf("%s : done! start speaking in the microphone\n", __func__);
-        printf("%s%s", params.person.c_str(), chat_symb.c_str());
-
-        // wait for 3 second to avoid any buffered noise
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
-        audio.clear();
 
         // text inference variables
         const int voice_id = 2;
@@ -786,9 +773,15 @@ int main(int argc, char ** argv) {
         // reverse prompts for detecting when it's time to stop speaking
         std::vector<std::string> antiprompts = {
             params.person + chat_symb,
-        };        
-        fprintf(stdout, "Speech-to-Text with LLAMA Start\n");
-        fflush(stdout);
+        };
+
+        printf("%s : done! start speaking in the microphone\n", __func__);
+        printf("%s%s", params.person.c_str(), chat_symb.c_str());
+        printf("Speech-to-Text with LLAMA Start\n");
+
+        // wait for 3 second to avoid any buffered noise
+        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        audio.clear();
 
         while (is_running)
         {
@@ -828,9 +821,8 @@ int main(int argc, char ** argv) {
                         result += text;
                     }
                     
-                    fprintf(stdout, "%s\n", result.c_str());
+                    printf("Athenea - 1: %s\n", result.c_str());
                     // if(!strcmp(buffer, "ON")) {
-                    //     fflush(stdout);
                     //     continue;
                     // }
                 }
@@ -860,15 +852,13 @@ int main(int argc, char ** argv) {
                 const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
                 if (result.empty() || tokens.empty()) {
-                    //fprintf(stdout, "%s: Heard nothing, skipping ...\n", __func__);
                     audio.clear();
-
                     continue;
                 }
 
                 result.insert(0, 1, ' ');
                 result += "\n" + params.bot_name + chat_symb;
-                fprintf(stdout, "%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                printf("Athenea - 2: %s%s%s", "\033[1m", result.c_str(), "\033[0m");
 
                 embd = ::llama_tokenize(ctx_llama, result, false);
 
@@ -934,11 +924,10 @@ int main(int argc, char ** argv) {
                         }
 
                         if (llama_decode(ctx_llama, batch)) {
-                            fprintf(stderr, "%s : failed to decode\n", __func__);
+                            printf("Athenea - 3: %s : failed to decode\n", __func__);
                             return 1;
                         }
                     }
-
 
                     embd_inp.insert(embd_inp.end(), embd.begin(), embd.end());
                     n_past += embd.size();
@@ -949,7 +938,6 @@ int main(int argc, char ** argv) {
 
                     {
                         // out of user input, sample next token
-
                         if (!path_session.empty() && need_to_save_session) {
                             need_to_save_session = false;
                             llama_state_save_file(ctx_llama, path_session.c_str(), session_tokens.data(), session_tokens.size());
@@ -963,9 +951,7 @@ int main(int argc, char ** argv) {
 
                             text_to_speak += llama_token_to_piece(ctx_llama, id);
 
-                            fprintf(stdout, "%s", llama_token_to_piece(ctx_llama, id).c_str());
-                            fflush(stdout);
-                            
+                            printf("Athenea - 4: %s", llama_token_to_piece(ctx_llama, id).c_str());
                         }
                     }
 

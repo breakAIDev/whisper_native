@@ -775,8 +775,8 @@ int main(int argc, char ** argv) {
             params.person + chat_symb,
         };
 
-        printf("%s : done! start speaking in the microphone\n", __func__);
-        printf("Speech-to-Text with LLAMA Start\n");
+        printf("Please start speech-to-text with %s\n". params.bot_name);
+        printf("%s : done! start speaking in the microphone\n", params.bot_name);
 
         // wait for 3 second to avoid any buffered noise
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));

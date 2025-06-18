@@ -776,7 +776,6 @@ int main(int argc, char ** argv) {
         };
 
         printf("%s : done! start speaking in the microphone\n", __func__);
-        printf("%s%s", params.person.c_str(), chat_symb.c_str());
         printf("Speech-to-Text with LLAMA Start\n");
 
         // wait for 3 second to avoid any buffered noise
@@ -820,11 +819,6 @@ int main(int argc, char ** argv) {
     
                         result += text;
                     }
-                    
-                    printf("Athenea - 1: %s\n", result.c_str());
-                    // if(!strcmp(buffer, "ON")) {
-                    //     continue;
-                    // }
                 }
 
                 // remove text between brackets using regex
@@ -855,10 +849,15 @@ int main(int argc, char ** argv) {
                     audio.clear();
                     continue;
                 }
-
+                    
+                // if(!strcmp(buffer, "ON")) {
+                //     continue;
+                // }
+                
+                printf("%s%s", params.person.c_str(), chat_symb.c_str());
                 result.insert(0, 1, ' ');
                 result += "\n" + params.bot_name + chat_symb;
-                printf("Athenea - 2: %s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                printf("%s%s%s ", "\033[1m", result.c_str(), "\033[0m");
 
                 embd = ::llama_tokenize(ctx_llama, result, false);
 
@@ -924,7 +923,7 @@ int main(int argc, char ** argv) {
                         }
 
                         if (llama_decode(ctx_llama, batch)) {
-                            printf("Athenea - 3: %s : failed to decode\n", __func__);
+                            printf("%s : failed to decode\n", __func__);
                             return 1;
                         }
                     }
@@ -951,7 +950,7 @@ int main(int argc, char ** argv) {
 
                             text_to_speak += llama_token_to_piece(ctx_llama, id);
 
-                            printf("Athenea - 4: %s", llama_token_to_piece(ctx_llama, id).c_str());
+                            printf("%s", llama_token_to_piece(ctx_llama, id).c_str());
                         }
                     }
 

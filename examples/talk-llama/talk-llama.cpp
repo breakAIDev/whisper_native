@@ -763,6 +763,7 @@ int main(int argc, char ** argv) {
         const int n_ctx    = llama_n_ctx(ctx_llama);
 
         char buffer[5] = {0};
+        char tpBuffer[5] = {0};
 
         int n_past = n_keep;
         int n_prev = 64; // TODO arg
@@ -776,7 +777,8 @@ int main(int argc, char ** argv) {
         };
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
-        printf("%s : done! start speaking in the microphone.\n", params.bot_name.c_str());
+        printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
+        printf("%s%s ", params.person.c_str(), chat_symb.c_str());
 
         // wait for 3 second to avoid any buffered noise
         std::this_thread::sleep_for(std::chrono::milliseconds(3000));
@@ -787,17 +789,6 @@ int main(int argc, char ** argv) {
             // handle Ctrl + C
             is_running = sdl_poll_events();
 
-            memset(buffer, 0, sizeof(buffer));
-            // if (fscanf(stdin, "%s\n", buffer)) {
-            //     // std::string strIsOnline(buffer);
-                
-            //     // if (strIsOnline == "OFF") {
-            //     //     fprintf(stdout, "network offline: whisper\n");
-            //     // } else if (strIsOnline == "ON") {
-            //     //     fprintf(stdout, "network online: whisper\n");
-            //     // }
-            // }
-            
             // delay
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -843,21 +834,43 @@ int main(int argc, char ** argv) {
                 result = std::regex_replace(result, std::regex("^\\s+"), "");
                 result = std::regex_replace(result, std::regex("\\s+$"), "");
 
-                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
-
-                if (result.empty() || tokens.empty()) {
+                if (result.empty()) {
                     audio.clear();
                     continue;
                 }
+
+                // memset(buffer, 0, sizeof(buffer));
+                // memset(tpBuffer, 0, sizeof(tpBuffer));
+                while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
+                    strcmp(buffer, tpBuffer);
+                    tpBuffer[4] = 0;
+                    // std::string strIsOnline(buffer);
                     
-                // if(!strcmp(buffer, "ON")) {
-                //     continue;
-                // }
-                
-                printf("%s%s", params.person.c_str(), chat_symb.c_str());
-                result.insert(0, 1, ' ');
-                result += "\n" + params.bot_name + chat_symb;
-                printf("%s%s%s ", "\033[1m", result.c_str(), "\033[0m");
+                    // if (strIsOnline == "OFF") {
+                    //     fprintf(stdout, "network offline: whisper\n");
+                    // } else if (strIsOnline == "ON") {
+                    //     fprintf(stdout, "network online: whisper\n");
+                    // }
+                }
+
+                if(!strcmp(buffer, "ON")) {
+                    result.insert(0, 1, ' ');
+                    result += "\n" + params.person + chat_symb;
+                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                    audio.clear();
+                    continue;
+                } else {
+                    result.insert(0, 1, ' ');
+                    result += "\n" + params.bot_name + chat_symb;
+                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                }
+
+                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
+
+                if (tokens.empty()) {
+                    audio.clear();
+                    continue;
+                }
 
                 embd = ::llama_tokenize(ctx_llama, result, false);
 

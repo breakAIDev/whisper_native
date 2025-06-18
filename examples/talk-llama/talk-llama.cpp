@@ -796,15 +796,15 @@ int main(int argc, char ** argv) {
             is_running = sdl_poll_events();
 
             memset(buffer, 0, sizeof(buffer));
-            if (fscanf(stdin, "%s\n", buffer)) {
-                // std::string strIsOnline(buffer);
+            // if (fscanf(stdin, "%s\n", buffer)) {
+            //     // std::string strIsOnline(buffer);
                 
-                // if (strIsOnline == "OFF") {
-                //     fprintf(stdout, "network offline: whisper\n");
-                // } else if (strIsOnline == "ON") {
-                //     fprintf(stdout, "network online: whisper\n");
-                // }
-            }
+            //     // if (strIsOnline == "OFF") {
+            //     //     fprintf(stdout, "network offline: whisper\n");
+            //     // } else if (strIsOnline == "ON") {
+            //     //     fprintf(stdout, "network online: whisper\n");
+            //     // }
+            // }
             
             // delay
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -829,10 +829,10 @@ int main(int argc, char ** argv) {
                     }
                     
                     fprintf(stdout, "%s\n", result.c_str());
-                    if(!strcmp(buffer, "ON")) {
-                        fflush(stdout);
-                        continue;
-                    }
+                    // if(!strcmp(buffer, "ON")) {
+                    //     fflush(stdout);
+                    //     continue;
+                    // }
                 }
 
                 // remove text between brackets using regex

@@ -834,38 +834,9 @@ int main(int argc, char ** argv) {
                 result = std::regex_replace(result, std::regex("^\\s+"), "");
                 result = std::regex_replace(result, std::regex("\\s+$"), "");
 
-                if (result.empty()) {
-                    audio.clear();
-                    continue;
-                }
-
-                memset(tpBuffer, 0, sizeof(tpBuffer));
-                while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
-                    strcmp(buffer, tpBuffer);
-                    // std::string strIsOnline(buffer);
-                    
-                    // if (strIsOnline == "OFF") {
-                    //     fprintf(stdout, "network offline: whisper\n");
-                    // } else if (strIsOnline == "ON") {
-                    //     fprintf(stdout, "network online: whisper\n");
-                    // }
-                }
-
-                if(!strcmp(buffer, "ON")) {
-                    result.insert(0, 1, ' ');
-                    result += "\n" + params.person + chat_symb;
-                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                    audio.clear();
-                    continue;
-                } else {
-                    result.insert(0, 1, ' ');
-                    result += "\n" + params.bot_name + chat_symb;
-                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                }
-
                 const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
-                if (tokens.empty()) {
+                if (result.empty() || tokens.empty()) {
                     audio.clear();
                     continue;
                 }
@@ -876,6 +847,30 @@ int main(int argc, char ** argv) {
                 if (!path_session.empty()) {
                     session_tokens.insert(session_tokens.end(), tokens.begin(), tokens.end());
                 }
+
+                // memset(tpBuffer, 0, sizeof(tpBuffer));
+                // while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
+                //     strcmp(buffer, tpBuffer);
+                //     // std::string strIsOnline(buffer);
+                    
+                //     // if (strIsOnline == "OFF") {
+                //     //     fprintf(stdout, "network offline: whisper\n");
+                //     // } else if (strIsOnline == "ON") {
+                //     //     fprintf(stdout, "network online: whisper\n");
+                //     // }
+                // }
+
+                // if(!strcmp(buffer, "ON")) {
+                //     result.insert(0, 1, ' ');
+                //     result += "\n" + params.person + chat_symb;
+                //     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                //     audio.clear();
+                //     continue;
+                // } else {
+                    result.insert(0, 1, ' ');
+                    result += "\n" + params.bot_name + chat_symb;
+                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                // }
 
                 // text inference
                 bool done = false;

@@ -841,25 +841,18 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                embd = ::llama_tokenize(ctx_llama, result, false);
-
-                // Append the new input tokens to the session_tokens vector
-                if (!path_session.empty()) {
-                    session_tokens.insert(session_tokens.end(), tokens.begin(), tokens.end());
-                }
-
-                // while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
-                    // scanf("%s\n", tpBuffer);
-                    // strcmp(buffer, tpBuffer);
-                    // memset(tpBuffer, 0, sizeof(tpBuffer));
-                    // std::string strIsOnline(buffer);
+                while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
+                    scanf("%s\n", tpBuffer);
+                    strcmp(buffer, tpBuffer);
+                    memset(tpBuffer, 0, sizeof(tpBuffer));
+                    std::string strIsOnline(buffer);
                     
-                    // if (strIsOnline == "OFF") {
-                    //     fprintf(stdout, "network offline: whisper\n");
-                    // } else if (strIsOnline == "ON") {
-                    //     fprintf(stdout, "network online: whisper\n");
-                    // }
-                // }
+                    if (strIsOnline == "OFF") {
+                        fprintf(stdout, "network offline: whisper\n");
+                    } else if (strIsOnline == "ON") {
+                        fprintf(stdout, "network online: whisper\n");
+                    }
+                }
 
                 // if(!strcmp(buffer, "ON")) {
                 //     result.insert(0, 1, ' ');
@@ -872,6 +865,13 @@ int main(int argc, char ** argv) {
                     result += "\n" + params.bot_name + chat_symb;
                     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
                 // }
+
+                embd = ::llama_tokenize(ctx_llama, result, false);
+
+                // Append the new input tokens to the session_tokens vector
+                if (!path_session.empty()) {
+                    session_tokens.insert(session_tokens.end(), tokens.begin(), tokens.end());
+                }
 
                 // text inference
                 bool done = false;

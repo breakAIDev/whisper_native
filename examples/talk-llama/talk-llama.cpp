@@ -848,9 +848,10 @@ int main(int argc, char ** argv) {
                     session_tokens.insert(session_tokens.end(), tokens.begin(), tokens.end());
                 }
 
-                while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
-                    strcmp(buffer, tpBuffer);
-                    memset(tpBuffer, 0, sizeof(tpBuffer));
+                // while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
+                    // scanf("%s\n", tpBuffer);
+                    // strcmp(buffer, tpBuffer);
+                    // memset(tpBuffer, 0, sizeof(tpBuffer));
                     // std::string strIsOnline(buffer);
                     
                     // if (strIsOnline == "OFF") {
@@ -858,7 +859,7 @@ int main(int argc, char ** argv) {
                     // } else if (strIsOnline == "ON") {
                     //     fprintf(stdout, "network online: whisper\n");
                     // }
-                }
+                // }
 
                 // if(!strcmp(buffer, "ON")) {
                 //     result.insert(0, 1, ' ');

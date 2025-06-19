@@ -779,26 +779,29 @@ int main(int argc, char ** argv) {
         std::vector<std::string> antiprompts = {
             params.person + chat_symb,
         };
-
+                
         // Launch a thread to read stdin status commands
+        std::string current_status;
         std::thread stdin_thread([]() {
             char line[16] = {0};
             while (true) {
-                scanf("%s\n", line);
-                std::string status(line);
-                status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
-                if (status == "ON" || status == "OFF") {
-                    std::lock_guard<std::mutex> lock(g_net_mutex);
-                    g_net_status = status;
-                    printf("[stdin_thread] Network status updated: %s\n", status.c_str());
-                }
+                if (fgets(line, sizeof(line), stdin) != nullptr) {
+                    std::string status(line);
+                    status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
 
-                memset(line, 0, sizeof(line));
+                    if (status == "ON" || status == "OFF") {
+                        std::lock_guard<std::mutex> lock(g_net_mutex);
+                        g_net_status = status;
+                        printf("[stdin_thread] Network status updated: %s\n", status.c_str());
+                        fflush(stdout);
+                    }
+                } else {
+                    // Optional: wait before retrying on error to avoid tight loop
+                    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
+                }
             }
         });
-        stdin_thread.detach();  // Run in background
-
-        std::string current_status;
+        stdin_thread.detach();
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());

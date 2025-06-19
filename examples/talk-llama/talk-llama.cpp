@@ -512,7 +512,7 @@ int main(int argc, char ** argv) {
         const bool use_grammar = (!params.grammar_parsed.rules.empty() && !params.grammar_rule.empty());
         wparams.strategy = (params.beam_size > 1 || use_grammar) ? WHISPER_SAMPLING_BEAM_SEARCH : WHISPER_SAMPLING_GREEDY;
 
-        wparams.print_realtime   = true;
+        wparams.print_realtime   = false;
         wparams.print_progress   = params.print_progress;
         wparams.print_timestamps = !params.no_timestamps;
         wparams.print_special    = params.print_special;
@@ -802,7 +802,6 @@ int main(int argc, char ** argv) {
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
-        printf("%s%s ", params.person.c_str(), chat_symb.c_str());
 
         // wait for 3 second to avoid any buffered noise
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -864,7 +863,7 @@ int main(int argc, char ** argv) {
                 }
 
                 printf("%s%s: %s%s\n", "\033[1m", params.person.c_str(), result.c_str(), "\033[0m");
-                
+
                 {
                     std::lock_guard<std::mutex> lock(g_net_mutex);
                     current_status = g_net_status;
@@ -882,7 +881,7 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                printf("%s%s: %s", "\033[1m", params.bot_name.c_str(), "\033[0m");
+                printf("%s%s:%s", "\033[1m", params.bot_name.c_str(), "\033[0m");
 
                 result.insert(0, 1, ' ');
                 result += "\n" + params.bot_name + chat_symb;
@@ -976,8 +975,7 @@ int main(int argc, char ** argv) {
                             embd.push_back(id);
 
                             text_to_speak += llama_token_to_piece(ctx_llama, id);
-
-                            printf("%s", llama_token_to_piece(ctx_llama, id).c_str());
+                            printf("%s%s%s", "\033[1m", llama_token_to_piece(ctx_llama, id).c_str(), "\033[0m");
                         }
                     }
 

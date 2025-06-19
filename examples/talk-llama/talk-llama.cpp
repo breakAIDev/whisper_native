@@ -16,7 +16,6 @@
 #include <sstream>
 #include <string>
 #include <vector>
-#include <atomic>
 #include <thread>
 #include <mutex>
 
@@ -339,7 +338,8 @@ The transcript only includes text, it does not include markup like HTML and Mark
 {1}{4} Blue
 {0}{4})";
 
-std::atomic<std::string> g_net_status = "ON";
+std::string g_net_status = "ON";
+std::mutex g_net_mutex;
 
 struct whisper_print_user_data {
     const whisper_params * params;
@@ -788,6 +788,7 @@ int main(int argc, char ** argv) {
                     std::string status(line);
                     status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
                     if (status == "ON" || status == "OFF") {
+                        std::lock_guard<std::mutex> lock(g_net_mutex);
                         g_net_status = status;
                         printf("[stdin_thread] Network status updated: %s\n", status.c_str());
                     }
@@ -795,6 +796,8 @@ int main(int argc, char ** argv) {
             }
         });
         stdin_thread.detach();  // Run in background
+
+        std::string current_status;
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
@@ -861,7 +864,12 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                if (g_net_status == "ON") {
+                {
+                    std::lock_guard<std::mutex> lock(g_net_mutex);
+                    current_status = g_net_status;
+                }
+
+                if (current_status == "ON") {
                     result.insert(0, 1, ' ');
                     result += "\n" + params.person + chat_symb;
                     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");

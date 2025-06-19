@@ -339,6 +339,7 @@ The transcript only includes text, it does not include markup like HTML and Mark
 {0}{4})";
 
 std::string g_net_status = "ON";
+std::string g_bot_name = "Aura";
 std::mutex g_net_mutex;
 
 struct whisper_print_user_data {
@@ -781,6 +782,8 @@ int main(int argc, char ** argv) {
         };
                 
         // Launch a thread to read stdin status commands
+        g_bot_name = params.bot_name.c_str();
+
         std::string current_status;
         std::thread stdin_thread([]() {
             char line[16] = {0};
@@ -790,9 +793,9 @@ int main(int argc, char ** argv) {
                     status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
 
                     if (status == "ON" || status == "OFF") {
-                        std::lock_guard<std::mutex> lock(g_net_mutex);
+                        // std::lock_guard<std::mutex> lock(g_net_mutex);
                         g_net_status = status;
-                        printf("%s: Network status updated: %s\n", params.bot_name.c_str(), status.c_str());
+                        printf("%s: Network status updated: %s\n", g_bot_name.c_str(), status.c_str());
                         fflush(stdout);
                     }
                 }
@@ -868,7 +871,7 @@ int main(int argc, char ** argv) {
                 printf(" %s%s%s\n", "\033[1m", result.c_str(), "\033[0m");
 
                 {
-                    std::lock_guard<std::mutex> lock(g_net_mutex);
+                    // std::lock_guard<std::mutex> lock(g_net_mutex);
                     current_status = g_net_status;
                 }
 

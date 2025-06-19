@@ -844,7 +844,6 @@ int main(int argc, char ** argv) {
                 // while( > 0) {
                     scanf("%s\n", tpBuffer)
                     // strcmp(buffer, tpBuffer);
-                    memset(tpBuffer, 0, sizeof(tpBuffer));
                     std::string strIsOnline(tpBuffer);
                     
                     if (strIsOnline == "OFF") {
@@ -852,7 +851,8 @@ int main(int argc, char ** argv) {
                     } else if (strIsOnline == "ON") {
                         printf("network online: whisper\n");
                     }
-                // }
+                    memset(tpBuffer, 0, sizeof(tpBuffer));
+                    // }
 
                 // if(!strcmp(buffer, "ON")) {
                 //     result.insert(0, 1, ' ');

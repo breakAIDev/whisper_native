@@ -862,32 +862,29 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                printf("%s%s%s\n", "\033[1m", result.c_str(), "\033[0m");
+                printf("%s%s: %s%s\n", "\033[1m", params.person.c_str(), result.c_str(), "\033[0m");
                 
-                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
-
-                if (result.empty() || tokens.empty()) {
-                    audio.clear();
-                    continue;
-                }
-
                 // {
                 //     std::lock_guard<std::mutex> lock(g_net_mutex);
                 //     current_status = g_net_status;
                 // }
 
                 // if (current_status == "ON") {
-                //     result.insert(0, 1, ' ');
-                //     result += "\n" + params.person + chat_symb;
-                //     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
                 //     audio.clear();
                 //     continue;
-                // } else {
-                    result.insert(0, 1, ' ');
-                    result += "\n" + params.bot_name + chat_symb;
-                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
                 // }
+                
+                const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
+                if (tokens.empty()) {
+                    audio.clear();
+                    continue;
+                }
+
+                printf("%s%s: %s", "\033[1m", params.bot_name.c_str(), "\033[0m");
+
+                result.insert(0, 1, ' ');
+                result += "\n" + params.bot_name + chat_symb;
                 embd = ::llama_tokenize(ctx_llama, result, false);
 
                 // Append the new input tokens to the session_tokens vector

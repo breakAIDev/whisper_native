@@ -792,19 +792,19 @@ int main(int argc, char ** argv) {
                     if (status == "ON" || status == "OFF") {
                         std::lock_guard<std::mutex> lock(g_net_mutex);
                         g_net_status = status;
-                        printf("[stdin_thread] Network status updated: %s\n", status.c_str());
+                        printf("%s: Network status updated: %s\n", params.bot_name.c_str(), status.c_str());
                         fflush(stdout);
                     }
-                } else {
-                    // Optional: wait before retrying on error to avoid tight loop
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
                 }
+                // Optional: wait before retrying on error to avoid tight loop
+                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
             }
         });
         stdin_thread.detach();
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
+        printf("%s%s:%s", "\033[1m", params.person.c_str(), "\033[0m");
 
         // wait for 3 second to avoid any buffered noise
         std::this_thread::sleep_for(std::chrono::milliseconds(1500));
@@ -865,7 +865,7 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                printf("%s%s: %s%s\n", "\033[1m", params.person.c_str(), result.c_str(), "\033[0m");
+                printf(" %s%s%s\n", "\033[1m", result.c_str(), "\033[0m");
 
                 {
                     std::lock_guard<std::mutex> lock(g_net_mutex);

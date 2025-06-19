@@ -780,22 +780,22 @@ int main(int argc, char ** argv) {
             params.person + chat_symb,
         };
 
-        // Launch a thread to read stdin status commands
-        std::thread stdin_thread([]() {
-            char line[16];
-            while (true) {
-                if (fgets(line, sizeof(line), stdin)) {
-                    std::string status(line);
-                    status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
-                    if (status == "ON" || status == "OFF") {
-                        std::lock_guard<std::mutex> lock(g_net_mutex);
-                        g_net_status = status;
-                        printf("[stdin_thread] Network status updated: %s\n", status.c_str());
-                    }
-                }
-            }
-        });
-        stdin_thread.detach();  // Run in background
+        // // Launch a thread to read stdin status commands
+        // std::thread stdin_thread([]() {
+        //     char line[16];
+        //     while (true) {
+        //         if (fgets(line, sizeof(line), stdin)) {
+        //             std::string status(line);
+        //             status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
+        //             if (status == "ON" || status == "OFF") {
+        //                 std::lock_guard<std::mutex> lock(g_net_mutex);
+        //                 g_net_status = status;
+        //                 printf("[stdin_thread] Network status updated: %s\n", status.c_str());
+        //             }
+        //         }
+        //     }
+        // });
+        // stdin_thread.detach();  // Run in background
 
         std::string current_status;
 
@@ -856,7 +856,14 @@ int main(int argc, char ** argv) {
                 // remove leading and trailing whitespace
                 result = std::regex_replace(result, std::regex("^\\s+"), "");
                 result = std::regex_replace(result, std::regex("\\s+$"), "");
+                
+                if (result.empty()) {
+                    audio.clear();
+                    continue;
+                }
 
+                printf("%s%s%s\n", "\033[1m", result.c_str(), "\033[0m");
+                
                 const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
                 if (result.empty() || tokens.empty()) {
@@ -864,22 +871,22 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                {
-                    std::lock_guard<std::mutex> lock(g_net_mutex);
-                    current_status = g_net_status;
-                }
+                // {
+                //     std::lock_guard<std::mutex> lock(g_net_mutex);
+                //     current_status = g_net_status;
+                // }
 
-                if (current_status == "ON") {
-                    result.insert(0, 1, ' ');
-                    result += "\n" + params.person + chat_symb;
-                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                    audio.clear();
-                    continue;
-                } else {
+                // if (current_status == "ON") {
+                //     result.insert(0, 1, ' ');
+                //     result += "\n" + params.person + chat_symb;
+                //     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                //     audio.clear();
+                //     continue;
+                // } else {
                     result.insert(0, 1, ' ');
                     result += "\n" + params.bot_name + chat_symb;
                     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                }
+                // }
 
                 embd = ::llama_tokenize(ctx_llama, result, false);
 

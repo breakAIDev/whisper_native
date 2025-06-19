@@ -841,18 +841,18 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                while(fscanf(stdin, "%s\n", tpBuffer) > 0) {
-                    scanf("%s\n", tpBuffer);
-                    strcmp(buffer, tpBuffer);
+                // while( > 0) {
+                    scanf("%s\n", tpBuffer)
+                    // strcmp(buffer, tpBuffer);
                     memset(tpBuffer, 0, sizeof(tpBuffer));
-                    std::string strIsOnline(buffer);
+                    std::string strIsOnline(tpBuffer);
                     
                     if (strIsOnline == "OFF") {
-                        fprintf(stdout, "network offline: whisper\n");
+                        printf("network offline: whisper\n");
                     } else if (strIsOnline == "ON") {
-                        fprintf(stdout, "network online: whisper\n");
+                        printf("network online: whisper\n");
                     }
-                }
+                // }
 
                 // if(!strcmp(buffer, "ON")) {
                 //     result.insert(0, 1, ' ');

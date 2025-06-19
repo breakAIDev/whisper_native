@@ -56,7 +56,7 @@ static std::string llama_token_to_piece(const struct llama_context * ctx, llama_
 // command-line parameters
 struct whisper_params {
     int32_t n_threads  = std::min(4, (int32_t) std::thread::hardware_concurrency());
-    int32_t n_processors  = 2;
+    int32_t n_processors  = 1;
     int32_t offset_t_ms   = 0;
     int32_t offset_n      = 0;
     int32_t duration_ms   = 0;

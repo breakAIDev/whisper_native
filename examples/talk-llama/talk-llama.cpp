@@ -15,8 +15,10 @@
 #include <regex>
 #include <sstream>
 #include <string>
-#include <thread>
 #include <vector>
+#include <atomic>
+#include <thread>
+#include <mutex>
 
 static std::vector<llama_token> llama_tokenize(struct llama_context * ctx, const std::string & text, bool add_bos) {
     const llama_model * model = llama_get_model(ctx);
@@ -336,6 +338,8 @@ The transcript only includes text, it does not include markup like HTML and Mark
 {0}{4} Name a color.
 {1}{4} Blue
 {0}{4})";
+
+std::atomic<std::string> g_net_status = "ON";
 
 struct whisper_print_user_data {
     const whisper_params * params;
@@ -776,12 +780,28 @@ int main(int argc, char ** argv) {
             params.person + chat_symb,
         };
 
+        // Launch a thread to read stdin status commands
+        std::thread stdin_thread([]() {
+            char line[16];
+            while (true) {
+                if (fgets(line, sizeof(line), stdin)) {
+                    std::string status(line);
+                    status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
+                    if (status == "ON" || status == "OFF") {
+                        g_net_status = status;
+                        printf("[stdin_thread] Network status updated: %s\n", status.c_str());
+                    }
+                }
+            }
+        });
+        stdin_thread.detach();  // Run in background
+
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
         printf("%s%s ", params.person.c_str(), chat_symb.c_str());
 
         // wait for 3 second to avoid any buffered noise
-        std::this_thread::sleep_for(std::chrono::milliseconds(3000));
+        std::this_thread::sleep_for(std::chrono::milliseconds(1500));
         audio.clear();
 
         while (is_running)
@@ -841,30 +861,17 @@ int main(int argc, char ** argv) {
                     continue;
                 }
 
-                // while( > 0) {
-                    scanf("%s\n", tpBuffer);
-                    strcmp(buffer, tpBuffer);
-                    memset(tpBuffer, 0, sizeof(tpBuffer));
-                    std::string strIsOnline(tpBuffer);
-                    
-                    if (strIsOnline == "OFF") {
-                        printf("network offline: whisper\n");
-                    } else if (strIsOnline == "ON") {
-                        printf("network online: whisper\n");
-                    }
-                // }
-
-                // if(!strcmp(buffer, "ON")) {
-                //     result.insert(0, 1, ' ');
-                //     result += "\n" + params.person + chat_symb;
-                //     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                //     audio.clear();
-                //     continue;
-                // } else {
+                if (g_net_status == "ON") {
+                    result.insert(0, 1, ' ');
+                    result += "\n" + params.person + chat_symb;
+                    printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
+                    audio.clear();
+                    continue;
+                } else {
                     result.insert(0, 1, ' ');
                     result += "\n" + params.bot_name + chat_symb;
                     printf("%s%s%s", "\033[1m", result.c_str(), "\033[0m");
-                // }
+                }
 
                 embd = ::llama_tokenize(ctx_llama, result, false);
 

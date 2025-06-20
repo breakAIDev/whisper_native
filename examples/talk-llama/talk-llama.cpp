@@ -364,7 +364,6 @@ int main(int argc, char ** argv) {
     // non-ASCII characters to the console, and access files with non-ASCII paths.
     SetConsoleOutputCP(CP_UTF8);
 #endif
-
     whisper_params params;
 
     if (whisper_params_parse(argc, argv, params) == false) {
@@ -383,6 +382,8 @@ int main(int argc, char ** argv) {
         whisper_print_usage(argc, argv, params);
         exit(0);
     }
+
+    printf("%s: Engine Start\n", params.bot_name.c_str());
 
     // whisper init
     struct whisper_context_params cparams = whisper_context_default_params();

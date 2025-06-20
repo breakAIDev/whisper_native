@@ -782,28 +782,28 @@ int main(int argc, char ** argv) {
         };
                 
         // Launch a thread to read stdin status commands
-        g_bot_name = params.bot_name.c_str();
+        // g_bot_name = params.bot_name.c_str();
 
-        std::string current_status;
-        std::thread stdin_thread([]() {
-            char line[16] = {0};
-            while (true) {
-                if (fgets(line, sizeof(line), stdin) != nullptr) {
-                    std::string status(line);
-                    status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
+        // std::string current_status;
+        // std::thread stdin_thread([]() {
+        //     char line[16] = {0};
+        //     while (true) {
+        //         if (fgets(line, sizeof(line), stdin) != nullptr) {
+        //             std::string status(line);
+        //             status.erase(std::remove(status.begin(), status.end(), '\n'), status.end());
 
-                    if (status == "ON" || status == "OFF") {
-                        std::lock_guard<std::mutex> lock(g_net_mutex);
-                        g_net_status = status;
-                        printf("%s: Network status updated: %s\n", g_bot_name.c_str(), status.c_str());
-                        fflush(stdout);
-                    }
-                }
-                // Optional: wait before retrying on error to avoid tight loop
-                std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-            }
-        });
-        stdin_thread.detach();
+        //             if (status == "ON" || status == "OFF") {
+        //                 std::lock_guard<std::mutex> lock(g_net_mutex);
+        //                 g_net_status = status;
+        //                 printf("%s: Network status updated: %s\n", g_bot_name.c_str(), status.c_str());
+        //                 fflush(stdout);
+        //             }
+        //         }
+        //         // Optional: wait before retrying on error to avoid tight loop
+        //         std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+        //     }
+        // });
+        // stdin_thread.detach();
 
         printf("Please start speech-to-text with %s.\n", params.bot_name.c_str());
         printf("%s: done! start speaking in the microphone.\n", params.bot_name.c_str());
@@ -869,15 +869,15 @@ int main(int argc, char ** argv) {
 
                 printf(" %s%s: %s%s\n", params.person.c_str(), "\033[1m", result.c_str(), "\033[0m");
 
-                {
-                    std::lock_guard<std::mutex> lock(g_net_mutex);
-                    current_status = g_net_status;
-                }
+                // {
+                //     std::lock_guard<std::mutex> lock(g_net_mutex);
+                //     current_status = g_net_status;
+                // }
 
-                if (current_status == "ON") {
-                    audio.clear();
-                    continue;
-                }
+                // if (current_status == "ON") {
+                //     audio.clear();
+                //     continue;
+                // }
                 
                 const std::vector<llama_token> tokens = llama_tokenize(ctx_llama, result.c_str(), false);
 
